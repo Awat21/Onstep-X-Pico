@@ -33,9 +33,10 @@
 #endif
 
 // Non-volatile storage ----------------------------------------------------------------------------
+// defaults to EEPROM emulation in flash, add an external I2C EEPROM (NV_AT24C32, etc.) for better endurance
 #if NV_DRIVER == NV_DEFAULT
   #undef NV_DRIVER
-  #define NV_DRIVER NV_AT24C32
+  #define NV_DRIVER NV_ESP
 #endif
 
 //--------------------------------------------------------------------------------------------------

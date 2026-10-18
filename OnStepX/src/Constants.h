@@ -42,7 +42,9 @@
 
 #define SAL_XB1                     24     // SAL-XB1 telescope mount controller
 
-#define PINMAP_LAST                 24
+#define BTT_SKR_PICO                25     // BigTreeTech SKR Pico Version 1.0 (RP2040), 4-axis TMC2209 UART
+
+#define PINMAP_LAST                 25
 
 // WEATHER sensors (temperature, pressure, and humidity)
 #define WEATHER_FIRST               1

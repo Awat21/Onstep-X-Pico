@@ -2,7 +2,7 @@
 #pragma once
 #include "NvDeviceBase.h"
 
-#if defined(ESP32) || defined(ESP8266)
+#if defined(ESP32) || defined(ESP8266) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
   #include <EEPROM.h>
 #endif
 
@@ -16,6 +16,11 @@ public:
     #elif defined(ESP8266)
       const uint32_t sz = sizeBytes();
       VLF("MSG: NvDevice, using built-in EEPROM 4KB via. ESP8266 core library");
+      EEPROM.begin((int)sz);
+      return true;
+    #elif defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+      const uint32_t sz = sizeBytes();
+      VLF("MSG: NvDevice, using built-in EEPROM 4KB via. RP2040 core library (flash emulation)");
       EEPROM.begin((int)sz);
       return true;
     #else
@@ -33,7 +38,7 @@ public:
   Endurance endurance() const override { return Endurance::Low; }
 
   IoStatus read(uint16_t addr, void* dst, uint16_t len) override {
-    #if !(defined(ESP32) || defined(ESP8266))
+    #if !(defined(ESP32) || defined(ESP8266) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350))
       (void)addr; (void)dst; (void)len;
       return IoStatus::IoError;
     #else
@@ -49,7 +54,7 @@ public:
   }
 
   IoStatus write(uint16_t addr, const void* src, uint16_t len) override {
-    #if !(defined(ESP32) || defined(ESP8266))
+    #if !(defined(ESP32) || defined(ESP8266) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350))
       (void)addr; (void)src; (void)len;
       return IoStatus::IoError;
     #else
@@ -68,7 +73,7 @@ public:
   bool hasCommit() const override { return true; }
 
   IoStatus commit() override {
-    #if !(defined(ESP32) || defined(ESP8266))
+    #if !(defined(ESP32) || defined(ESP8266) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350))
       return IoStatus::IoError;
     #else
       bool ok = EEPROM.commit();

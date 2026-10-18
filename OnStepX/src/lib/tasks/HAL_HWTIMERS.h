@@ -49,6 +49,8 @@
   #else
     #include "HAL_ESP32_HWTIMER.h"
   #endif
+#elif defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+  #include "HAL_RP2040_HWTIMER.h"
 #else
   #include "HAL_EMPTY_HWTIMER.h"
 #endif

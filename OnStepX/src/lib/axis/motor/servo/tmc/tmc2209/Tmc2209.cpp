@@ -65,7 +65,12 @@ bool ServoTmc2209::init(bool reverse) {
     if (!initialized) {
       #if defined(SERIAL_TMC_RX) && defined(SERIAL_TMC_TX) && !defined(SERIAL_TMC_RXTX_SET)
         VF("HW UART driver pins rx="); V(SERIAL_TMC_RX); VF(", tx="); V(SERIAL_TMC_TX); VF(", baud="); V(SERIAL_TMC_BAUD); VLF(" bps");
-        SerialTMC.begin(SERIAL_TMC_BAUD, SERIAL_8N1, SERIAL_TMC_RX, SERIAL_TMC_TX);
+        #if defined(ARDUINO_ARCH_RP2040)
+          SerialTMC.setRX(SERIAL_TMC_RX); SerialTMC.setTX(SERIAL_TMC_TX);
+          SerialTMC.begin(SERIAL_TMC_BAUD);
+        #else
+          SerialTMC.begin(SERIAL_TMC_BAUD, SERIAL_8N1, SERIAL_TMC_RX, SERIAL_TMC_TX);
+        #endif
       #else
         VF("HW UART driver pins on port default"); VF(", baud="); V(SERIAL_TMC_BAUD); VLF(" bps");
         SerialTMC.begin(SERIAL_TMC_BAUD);

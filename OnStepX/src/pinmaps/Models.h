@@ -91,6 +91,10 @@
   #define PINMAP_STR "SAL-XB1"
   #include "Pins.SAL_XB1.h"
 #endif
+#if PINMAP == BTT_SKR_PICO
+  #define PINMAP_STR "BTT SKR PICO v1.0"
+  #include "Pins.SKR_PICO.h"
+#endif
 #ifndef PINMAP_STR
   #define PINMAP_STR "Unknown"
 #endif
