@@ -6,6 +6,10 @@
   #include "Pins.Esp32s2.h"
   #define PINMAP_STR "ESP32-S2"
 
+#elif defined(ARDUINO_XIAO_ESP32C5)
+  #include "Pins.XiaoEsp32c5.h"
+  #define PINMAP_STR "XIAO ESP32-C5"
+
 #elif defined(CONFIG_IDF_TARGET_ESP32C3)
   #include "Pins.Esp32c3.h"
   #define PINMAP_STR "ESP32-C3"

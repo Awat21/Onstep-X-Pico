@@ -15,6 +15,15 @@
   #define SERIAL_B              Serial1          // Uses the core default pins GPIO1 (RX) and GPIO0 (TX)
 #endif
 
+// Both hardware UARTs are in use so the GPS gets a PIO based serial port, receive only since OnStep never transmits to it
+#if SERIAL_GPS_BAUD != OFF
+  #ifndef SERIAL_GPS
+    #define SERIAL_GPS          SoftSerial
+    #define SERIAL_GPS_RX       22               // Connector Labeled PROBE (with the P_2/PROBE jumper fitted)
+    #define SERIAL_GPS_TX       NOPIN
+  #endif
+#endif
+
 // Use the following settings for the onboard TMC2209 drivers
 #if defined(STEP_DIR_TMC_UART_PRESENT) || defined(SERVO_TMC2209_PRESENT)
   #define SERIAL_TMC_HARDWARE_UART
@@ -67,13 +76,11 @@
 // The endstop inputs are buffered (74LVC2G34) and have 10K pullups to 3.3V, so they are inputs only
 
 // The PEC index sense is a logic level input, resets the PEC index on rising edge then waits for 60 seconds before allowing another reset
-#ifndef PEC_SENSE_PIN
-  #define PEC_SENSE_PIN         16               // Connector Labeled E0-STOP
-#endif
+// (there are no free inputs left for it, add a #define PEC_SENSE_PIN to Config.h to use one, the Y-STOP for instance)
 
 // The PPS pin is a 3.3V logic input, OnStep measures time between rising edges and adjusts the internal sidereal clock frequency
 #ifndef PPS_SENSE_PIN
-  #define PPS_SENSE_PIN         22               // Connector Labeled PROBE (with the P_2/PROBE jumper fitted)
+  #define PPS_SENSE_PIN         16               // Connector Labeled E0-STOP
 #endif
 
 // The limit switch sense is a logic level input normally pull high (2k resistor,) shorted to ground it stops gotos/tracking
