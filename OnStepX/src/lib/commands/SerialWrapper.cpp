@@ -17,6 +17,15 @@
   #define SERIAL_B_RXTX_SET
 #endif
 
+#if SERIAL_B == SoftSerial
+  #include <SoftwareSerial.h>
+  #undef SERIAL_B
+  SoftwareSerial SWSerialB(SERIAL_B_RX, SERIAL_B_TX);
+  #define SERIAL_B SWSerialB
+  #define SERIAL_B_RXTX_SET
+  #define SERIAL_B_END_BEFORE_BEGIN // some software serial ports (RP2040 PIO) claim new resources on each begin()
+#endif
+
 #if SERIAL_C == HardSerial
   #undef SERIAL_C
   HardwareSerial HWSerialC(SERIAL_C_RX, SERIAL_C_TX);
@@ -90,12 +99,16 @@ void SerialWrapper::begin(long baud) {
       #endif
   #endif
   #ifdef SERIAL_B
-    if (isChannel(channel++))
+    if (isChannel(channel++)) {
+      #ifdef SERIAL_B_END_BEFORE_BEGIN
+        SERIAL_B.end();
+      #endif
       #if defined(SERIAL_B_RX) && defined(SERIAL_B_TX) && !defined(SERIAL_B_RXTX_SET)
         SERIAL_B.begin(baud, SERIAL_8N1, SERIAL_B_RX, SERIAL_B_TX);
       #else
         SERIAL_B.begin(baud);
       #endif
+    }
   #endif
   #ifdef SERIAL_C
     if (isChannel(channel++))

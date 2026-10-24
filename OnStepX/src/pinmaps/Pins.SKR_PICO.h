@@ -5,21 +5,24 @@
 #if defined(ARDUINO_ARCH_RP2040)
 
 // Serial: Built in USB (not TTL)
-// Serial1: RX1 Pin GPIO1, TX1 Pin GPIO0 (Connector Labeled 5V_Power, has 5V and GND for an ESP SmartWebServer)
 // Serial2: RX2 Pin GPIO9, TX2 Pin GPIO8 (TMC2209 UART, all four drivers)
+// GPIO0/GPIO1 (UART0) are used for I2C instead, see below, so Serial B and the GPS use PIO based serial ports
 
 #if SERIAL_A_BAUD_DEFAULT != OFF
   #define SERIAL_A              Serial
 #endif
 #if SERIAL_B_BAUD_DEFAULT != OFF
-  #define SERIAL_B              Serial1          // Uses the core default pins GPIO1 (RX) and GPIO0 (TX)
+  #define SERIAL_B              SoftSerial       // For an ESP SmartWebServer
+  #define SERIAL_B_RX           22               // Connector Labeled PROBE (with the P_2/PROBE jumper fitted)
+  #define SERIAL_B_TX           29               // Connector Labeled SERVOS
 #endif
 
-// Both hardware UARTs are in use so the GPS gets a PIO based serial port, receive only since OnStep never transmits to it
+// Receive only since OnStep never transmits to the GPS. The endstop input has an RC filter (100R, 0.1uF) so keep the
+// GPS at 9600 baud
 #if SERIAL_GPS_BAUD != OFF
   #ifndef SERIAL_GPS
     #define SERIAL_GPS          SoftSerial
-    #define SERIAL_GPS_RX       22               // Connector Labeled PROBE (with the P_2/PROBE jumper fitted)
+    #define SERIAL_GPS_RX       16               // Connector Labeled E0-STOP
     #define SERIAL_GPS_TX       NOPIN
   #endif
 #endif
@@ -39,13 +42,14 @@
   #define SERIAL_TMC_RX_DISABLE false
 #endif
 
-// I2C on the only free pins that support it, GPIO24 (SDA, Connector Labeled RGB) and GPIO29 (SCL, Connector Labeled
-// SERVOS), both connectors have 5V and GND. The onboard RGB LED is also on GPIO24 so it may flicker with I2C traffic.
+// I2C on GPIO0 (SDA) and GPIO1 (SCL), Connector Labeled 5V_Power (pins TXD0 and RXD0), the only free pins with a
+// direct connection that support I2C (GPIO24 on the RGB connector goes through a one way buffer). This connector has
+// 5V and GND but power I2C devices from 3.3V (SWD connector pin 5), the RP2040 isn't 5V tolerant.
 #ifndef I2C_SDA_PIN
-  #define I2C_SDA_PIN           24
+  #define I2C_SDA_PIN           0
 #endif
 #ifndef I2C_SCL_PIN
-  #define I2C_SCL_PIN           29
+  #define I2C_SCL_PIN           1
 #endif
 
 // MOSFET outputs, these switch the main (12/24V) power low side and are well suited for dew heaters
@@ -80,13 +84,11 @@
 
 // The PPS pin is a 3.3V logic input, OnStep measures time between rising edges and adjusts the internal sidereal clock frequency
 #ifndef PPS_SENSE_PIN
-  #define PPS_SENSE_PIN         16               // Connector Labeled E0-STOP
+  #define PPS_SENSE_PIN         25               // Connector Labeled Z-STOP
 #endif
 
 // The limit switch sense is a logic level input normally pull high (2k resistor,) shorted to ground it stops gotos/tracking
-#ifndef LIMIT_SENSE_PIN
-  #define LIMIT_SENSE_PIN       25               // Connector Labeled Z-STOP
-#endif
+// (there are no free inputs left for it, add a #define LIMIT_SENSE_PIN to Config.h to use one, the Y-STOP for instance)
 
 // Axis1 RA/Azm step/dir driver (Labeled X)
 #define AXIS1_ENABLE_PIN        12

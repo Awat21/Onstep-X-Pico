@@ -25,13 +25,12 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 | Z driver (Z1/Z2) | Axis3 (rotator), TMC2209 UART address 1 |
 | E driver | Axis4 (focuser 1), TMC2209 UART address 3 |
 | X-STOP (GPIO4) / Y-STOP (GPIO3) | Axis1 / Axis2 home switch |
-| Z-STOP (GPIO25) | Limit switch |
-| E0-STOP (GPIO16) | GPS PPS input |
-| PROBE (GPIO22, P_2/PROBE jumper fitted) | GPS serial (receive only, PIO serial port) |
-| RGB (GPIO24 = SDA) + SERVOS (GPIO29 = SCL) | I2C (BME280, DS3231 + AT24C32 EEPROM) |
+| Z-STOP (GPIO25) | GPS PPS input |
+| E0-STOP (GPIO16) | GPS serial (receive only, PIO serial port, 9600 baud) |
+| PROBE (GPIO22, P_2/PROBE jumper fitted) + SERVOS (GPIO29) | Serial B for the SmartWebServer (PIO serial port): GPIO22 = Pico RX, GPIO29 = Pico TX |
+| 5V_Power header: TXD0 (GPIO0 = SDA), RXD0 (GPIO1 = SCL) | I2C (BME280, DS3231 + AT24C32 EEPROM) |
 | HE / HB / FAN1 / FAN2 / FAN3 | AUX1..AUX5 MOSFET outputs (dew heaters, switches) |
 | TH0 (GPIO27) / THB (GPIO26) | Thermistor inputs for features 1 and 2 |
-| 5V_Power header: TXD0 (GPIO0), RXD0 (GPIO1), 5V, GND | Serial B (9600 baud) for the SmartWebServer |
 | USB-C | Serial A |
 
 ### Building and flashing OnStepX
@@ -43,7 +42,7 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 
 ### GPS, clock, weather sensor and EEPROM
 
-`Config.h` is set up for an Adafruit Ultimate GPS (PA1616D), a ZS-042 DS3231 module (which includes an AT24C32 EEPROM) and a BME280:
+`Config.h` is set up for a GPS at 9600 baud with a PPS output (an ATGM336H board, for instance), a ZS-042 DS3231 module (which includes an AT24C32 EEPROM) and a BME280:
 
 - `TIME_LOCATION_SOURCE GPS`, with `TIME_LOCATION_SOURCE_FALLBACK DS3231` so the time is right at power-on before the GPS has a fix
 - `TIME_LOCATION_PPS_SENSE HIGH` and `TIME_LOCATION_PPS_SYNC ON`, so the GPS pulse keeps the sidereal clock accurate
@@ -52,25 +51,29 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 
 | Device pin | SKR Pico |
 |---|---|
-| GPS VIN / GND | 5V / GND (any 5V header, e.g. PROBE or E0-STOP) |
-| GPS TX | PROBE signal pin (GPIO22), with the P_2/PROBE jumper fitted |
-| GPS PPS | E0-STOP signal pin (GPIO16) |
+| GPS VIN / GND | 5V / GND on the E0-STOP connector |
+| GPS TX | E0-STOP signal pin (GPIO16) |
+| GPS PPS | Z-STOP signal pin (GPIO25) |
 | GPS RX | not connected |
 | ZS-042 and BME280 VCC / GND | **3.3V** (SWD header pin 5) / GND |
-| ZS-042 and BME280 SDA | RGB signal pin (GPIO24) |
-| ZS-042 and BME280 SCL | SERVOS signal pin (GPIO29) |
+| ZS-042 and BME280 SDA | TXD0 on the 5V_Power header (GPIO0) |
+| ZS-042 and BME280 SCL | RXD0 on the 5V_Power header (GPIO1) |
 
 The Pico's pins don't tolerate 5V, and the ZS-042 pulls SDA/SCL up to its own supply, so power the I2C modules from 3.3V, not the 5V on those headers. The ZS-042 also has a battery charging circuit meant for a rechargeable LIR2032. With a regular CR2032, remove the charging resistor (or its diode) so the battery isn't charged.
 
-The PEC index input has moved off E0-STOP. To use one, add `#define PEC_SENSE_PIN 3` (Y-STOP, if not used for homing) or similar to `Config.h`.
+The GPS has to stay at 9600 baud: the E0-STOP input has a small RC filter (100R and 0.1uF) that is fine at that rate but too slow for faster ones. A u-blox board (38400 baud by default) needs its baud rate set to 9600 once, with u-center for instance, and `SERIAL_GPS_BAUD` left at its default.
+
+There are no free inputs for a PEC index or limit switch. To use one, add `#define PEC_SENSE_PIN 3` or `#define LIMIT_SENSE_PIN 3` (Y-STOP, if not used for homing) or similar to `Config.h`.
+
+The RGB connector (GPIO24) can't be used for I2C or other inputs: it goes through a one way 5V buffer to drive the RGB LED.
 
 ### SmartWebServer
 
 The SmartWebServer runs on a Seeed Studio XIAO ESP32-C5, with a pinmap in `SmartWebServer/src/pinmaps/Pins.XiaoEsp32c5.h`. In the Arduino IDE, use the Espressif ESP32 package (3.3 or newer) and select the board **XIAO_ESP32C5**. Out of the box it starts its own Wi-Fi network, "OnStep-SWS" (password `password`), with the web interface at http://192.168.0.1. From there you can join it to your home network, or change the defaults in `SmartWebServer/Extended.config.h` before flashing.
 
-| XIAO ESP32-C5 | SKR Pico 5V_Power header |
+| XIAO ESP32-C5 | SKR Pico |
 |---|---|
-| D6 (TX, GPIO11) | RXD0 (GPIO1) |
-| D7 (RX, GPIO12) | TXD0 (GPIO0) |
-| 5V | 5V |
+| D6 (TX, GPIO11) | PROBE signal pin (GPIO22), with the P_2/PROBE jumper fitted |
+| D7 (RX, GPIO12) | SERVOS signal pin (GPIO29) |
+| 5V | 5V on the SERVOS or 5V_Power connector |
 | GND | GND |
