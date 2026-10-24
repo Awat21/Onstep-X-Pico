@@ -35,6 +35,8 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 
 ### Building and flashing OnStepX
 
+Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing steps. To change settings, build from source:
+
 1. Install the [Arduino-Pico core](https://github.com/earlephilhower/arduino-pico) (Earle Philhower). Board manager URL: `https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json`
 2. Install the libraries: [hjd1964/TMC2209](https://github.com/hjd1964/TMC2209) (from GitHub, as a zip), "Adafruit BME280 Library", "RTC by Makuna" and "TinyGPSPlus".
 3. Open `OnStepX/OnStepX.ino` and select the board **Raspberry Pi Pico**.
