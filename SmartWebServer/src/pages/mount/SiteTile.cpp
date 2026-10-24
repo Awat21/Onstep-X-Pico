@@ -12,6 +12,29 @@ int get_temp_hour;
 int get_temp_minute;
 int get_temp_second;
 
+// clock status for the top of the tile
+const char* clockStatusStr() {
+  if (status.ppsSync) return L_CLOCK_GPS;
+  if (state.dateTimeReady) return L_CLOCK_SET;
+  return L_CLOCK_NOT_SET;
+}
+
+// split a location as returned by OnStep (sDD*MM:SS or sDDD*MM:SS) into the degrees, minutes, seconds input values,
+// with the degree digits position given (3 for latitude, 4 for longitude)
+void siteInputsAjax(String &data, const char *raw, int degDigits, const char *kd, const char *km, const char *ks) {
+  char reply[12];
+  if (strlen(raw) < (size_t)(degDigits + 6)) return;
+  strcpy(reply, raw);
+  reply[degDigits] = 0;
+  reply[degDigits + 3] = 0;
+  reply[degDigits + 6] = 0;
+  if (reply[0] == '+') reply[0] = '0';
+  convert.stripNumericStr(reply);
+  data.concat(kd); data.concat("&"); data.concat(reply); data.concat("\n");
+  data.concat(km); data.concat("&"); data.concat(&reply[degDigits + 1]); data.concat("\n");
+  if (status.getVersionMajor() > 3) { data.concat(ks); data.concat("&"); data.concat(&reply[degDigits + 4]); data.concat("\n"); }
+}
+
 // create the related webpage tile
 void siteTile(String &data)
 {
@@ -19,6 +42,8 @@ void siteTile(String &data)
   char reply[80] = "";
 
   snprintf_P(temp, sizeof(temp), html_tile_text_beg, "22em", "15em", L_LOCATION_TITLE);
+  data.concat(temp);
+  snprintf_P(temp, sizeof(temp), html_clockStatus, clockStatusStr());
   data.concat(temp);
   data.concat(F("<br/><hr>"));
 
@@ -51,13 +76,13 @@ void siteTile(String &data)
   reply[9] = 0;
   if (reply[0] == '+') reply[0] = '0';
   convert.stripNumericStr(reply);
-  snprintf_P(temp, sizeof(temp), html_ninput_wide, "t1", reply, "-90", "90", "&deg;");
+  snprintf_P(temp, sizeof(temp), html_ninput_site_wide, "t1", "t1", reply, "-90", "90", "&deg;");
   data.concat(temp);
-  snprintf_P(temp, sizeof(temp), html_ninput, "t2", &reply[4], "0", "60", "'");
+  snprintf_P(temp, sizeof(temp), html_ninput_site, "t2", "t2", &reply[4], "0", "60", "'");
   data.concat(temp);
   if (status.getVersionMajor() > 3)
   {
-    snprintf_P(temp, sizeof(temp), html_ninput, "t3", &reply[7], "0", "60", "\"");
+    snprintf_P(temp, sizeof(temp), html_ninput_site, "t3", "t3", &reply[7], "0", "60", "\"");
     data.concat(temp);
   }
   data.concat(F("<br />"));
@@ -72,13 +97,13 @@ void siteTile(String &data)
   reply[10] = 0;
   if (reply[0] == '+') reply[0] = '0';
   convert.stripNumericStr(reply);
-  snprintf_P(temp, sizeof(temp), html_ninput_wide, "g1", reply, "-180", "180", "&deg;");
+  snprintf_P(temp, sizeof(temp), html_ninput_site_wide, "g1", "g1", reply, "-180", "180", "&deg;");
   data.concat(temp);
-  snprintf_P(temp, sizeof(temp), html_ninput, "g2", &reply[5], "0", "60", "'");
+  snprintf_P(temp, sizeof(temp), html_ninput_site, "g2", "g2", &reply[5], "0", "60", "'");
   data.concat(temp);
   if (status.getVersionMajor() > 3)
   {
-    snprintf_P(temp, sizeof(temp), html_ninput, "g3", &reply[8], "0", "60", "\"");
+    snprintf_P(temp, sizeof(temp), html_ninput_site, "g3", "g3", &reply[8], "0", "60", "\"");
     data.concat(temp);
   }
   data.concat(F("<br />"));
@@ -113,6 +138,9 @@ void siteTileAjax(String &data)
   data.concat(keyValueString("time_lst", state.lastStr));
   data.concat(keyValueString("site_long", state.longitudeStr));
   data.concat(keyValueString("site_lat", state.latitudeStr));
+  data.concat(keyValueString("clock_sta", clockStatusStr()));
+  siteInputsAjax(data, state.latitudeRawStr, 3, "t1", "t2", "t3");
+  siteInputsAjax(data, state.longitudeRawStr, 4, "g1", "g2", "g3");
   data.concat(keyValueString("call", "update_date_time"));
   www.sendContentAndClear(data);
 }

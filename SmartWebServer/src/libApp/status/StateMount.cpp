@@ -85,6 +85,7 @@ void State::updateMount(bool now)
   // Latitude
   if (!onStep.command(status.getVersionMajor() > 3 ? ":GtH#" : ":Gt#", temp)) strcpy(temp, "?");
   sstrcpyex(latitudeStr, temp, 10);
+  sstrcpyex(latitudeRawStr, temp, 12);
   convert.dmsToDouble(&latitude, latitudeStr, true);
   formatDegreesStr(latitudeStr);
   Y;
@@ -92,7 +93,14 @@ void State::updateMount(bool now)
   // Longitude
   if (!onStep.command(status.getVersionMajor() > 3 ? ":GgH#" : ":Gg#", temp)) strcpy(temp, "?");
   sstrcpyex(longitudeStr, temp, 11);
+  sstrcpyex(longitudeRawStr, temp, 12);
   formatDegreesStr(longitudeStr);
+  Y;
+
+  // Date/time ready, 0 = ready
+  if (status.getVersionMajor() >= 10) {
+    dateTimeReady = onStep.command(":GX89#", temp) && temp[0] == '0';
+  } else dateTimeReady = strcmp(dateStr, "?") != 0;
   Y;
 
   // Pier side

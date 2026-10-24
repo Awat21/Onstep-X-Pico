@@ -62,6 +62,9 @@ class State {
     double latitude = NAN;
     char latitudeStr[20] = "?";
     char longitudeStr[20] = "?";
+    char latitudeRawStr[12] = "?";  // as returned by OnStep, sDD*MM:SS
+    char longitudeRawStr[12] = "?"; // as returned by OnStep, sDDD*MM:SS
+    bool dateTimeReady = false;     // OnStep has a date and time (from a TLS device, GPS, or set by the user)
     char siteTemperatureStr[16] = "?";
     char sitePressureStr[16] = "?";
     char siteHumidityStr[16] = "?";

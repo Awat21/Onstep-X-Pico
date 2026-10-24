@@ -15,6 +15,25 @@ const char html_browserTime[] PROGMEM =
   "<script>update_date_time();</script>"
   "<br />\n";
 
+#ifndef L_CLOCK_GPS
+  #define L_CLOCK_GPS "GPS synced"
+#endif
+#ifndef L_CLOCK_SET
+  #define L_CLOCK_SET "Clock set"
+#endif
+#ifndef L_CLOCK_NOT_SET
+  #define L_CLOCK_NOT_SET "Clock not set"
+#endif
+
+// status shown at the top right of the tile, kept up to date by Ajax
+const char html_clockStatus[] PROGMEM = "<div style='float: right; text-align: right;' id='clock_sta' class='c'>%s</div>";
+
+// location inputs with an id so Ajax can fill them in when OnStep's location changes (from a GPS for instance)
+const char html_ninput_site_wide[] PROGMEM =
+"<input style='width: 4em;' type='number' id='%s' name='%s' value='%s' min='%s' max='%s'>&nbsp;%s";
+const char html_ninput_site[] PROGMEM =
+"<input style='width: 3.5em;' type='number' id='%s' name='%s' value='%s' min='%s' max='%s'>&nbsp;%s";
+
 const char html_date[] PROGMEM = "<span id='date_ut' class='c'>%s</span>";
 const char html_time[] PROGMEM = "&nbsp;<span id='time_ut' class='c'>%s</span>&nbsp;" L_UT;
 const char html_sidereal[] PROGMEM = "&nbsp;(<span id='time_lst' class='c'>%s</span>&nbsp; " L_LST ")<br />";
