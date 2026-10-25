@@ -14,7 +14,7 @@ extern void stallGuardTileGet();
 
 const char html_stallGuardSelect[] PROGMEM = "<button id='sgax%d' onpointerdown=\"s('sgax','%d')\" type='button' class='bb'>%c</button>";
 
-const char html_stallGuardGraph[] PROGMEM = "<canvas id='stallGuardCanvas' width='420' height='220' style='border:1px solid #000000;'></canvas> \n";
+const char html_stallGuardGraph[] PROGMEM = "<canvas id='stallGuardCanvas' width='420' height='220' style='border: 1px solid var(--line); border-radius: 8px;'></canvas> \n";
 
 const char html_stallGuardScript_1[] PROGMEM =
   "<script>\n"

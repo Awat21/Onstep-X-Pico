@@ -14,7 +14,7 @@ extern void servoTileGet();
 
 const char html_servoSelect[] PROGMEM = "<button id='svax%d' onpointerdown=\"s('svax','%d')\" type='button' class='bb'>%c</button>";
 
-const char html_servoGraph[] PROGMEM = "<canvas id='servoCanvas' width='420' height='300' style='border:1px solid #000000;'></canvas> \n";
+const char html_servoGraph[] PROGMEM = "<canvas id='servoCanvas' width='420' height='300' style='border: 1px solid var(--line); border-radius: 8px;'></canvas> \n";
 
 const char html_servoScript1[] PROGMEM =
   "<script>\n"

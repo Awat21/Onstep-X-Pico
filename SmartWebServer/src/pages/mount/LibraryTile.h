@@ -56,7 +56,7 @@ const char html_libClearCatalog[] PROGMEM =
 
 const char html_libEditCatalog[] PROGMEM =
 L_CAT_DATA "<br />"
-"<textarea id='cat_data' style='background-color: " COLOR_LIGHT_BACKGROUND "; color: #ffffff; border: 1px solid " COLOR_BORDER ";' "
+"<textarea id='cat_data' style='background-color: " COLOR_LIGHT_BACKGROUND "; color: " COLOR_LIGHT_FOREGROUND "; border: 1px solid " COLOR_BORDER ";' "
 "rows='10' cols='40' oninput=\"document.getElementById('cat_upload').disabled=false;\"></textarea><br /><br />\n";
 
 const char html_libCatalogHelp[] PROGMEM =

@@ -15,10 +15,10 @@
 
 void pageHeader(int selected);
 
-const char html_onstep_header_begin[] PROGMEM = "<div class='t'><table width='100%%'><tr><td><b><font size='5'>";
-const char html_onstep_header_title[] PROGMEM = "</font></b></td><td align='right'><b>Smart Web Server ";
-const char html_onstep_header_links[] PROGMEM = ")</b></td></tr></table>";
-const char html_onstep_header_end[] PROGMEM = "</div>\n";
+const char html_onstep_header_begin[] PROGMEM = "<header class='hdr'><div class='hdr-row'><span class='brand'>";
+const char html_onstep_header_title[] PROGMEM = "</span><span class='meta'>Smart Web Server ";
+const char html_onstep_header_links[] PROGMEM = ")</span></div><nav class='tabs'>";
+const char html_onstep_header_end[] PROGMEM = "</nav></header>\n";
 const char html_onstep_page_begin[] PROGMEM = "<div class='b'>\n";
 
 const char html_links_idx_begin[] PROGMEM = "<a href='/index.htm' ";
@@ -42,4 +42,4 @@ const char html_links_enc_end[] PROGMEM = ">" L_PAGE_ENCODERS "</a>";
 const char html_links_net_begin[] PROGMEM = "<a href='/net.htm' ";
 const char html_links_net_end[] PROGMEM = ">" L_PAGE_NETWORK "</a>";
 
-const char html_links_selected[] PROGMEM =" style='background-color: " COLOR_LINK_SELECTED_BACKGROUND ";' ";
+const char html_links_selected[] PROGMEM = " class='on' ";
