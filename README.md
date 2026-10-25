@@ -33,6 +33,49 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 | TH0 (GPIO27) / THB (GPIO26) | Thermistor inputs for features 1 and 2 |
 | USB-C | Serial A |
 
+### Wiring diagram and checklist
+
+![SKR Pico wiring for this build](docs/SKR-Pico-wiring.png)
+
+The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https://github.com/bigtreetech/skr-pico)) with this build's connections added. Every wire, connector by connector:
+
+| SKR Pico connector | Pin | Wire to |
+|---|---|---|
+| X driver | 2B 1B 1A 2A | RA motor (Axis1), 17HM19-2004S |
+| Y driver | 2B 1B 1A 2A | Dec motor (Axis2), 17HM19-2004S |
+| Z1 / Z2 driver | 2B 1B 1A 2A | Rotator (Axis3), optional, not enabled in `Config.h` |
+| E driver | 2B 1B 1A 2A | Focuser 1 (Axis4), optional, not enabled in `Config.h` |
+| X-STOP | IO4 / GND | RA home switch, optional |
+| Y-STOP | IO3 / GND | Dec home switch, optional |
+| E0-STOP | IO16 | GPS TX (9600 baud) |
+| E0-STOP | 5V | GPS VIN |
+| E0-STOP | GND | GPS GND |
+| Z-STOP | IO25 | GPS PPS |
+| Z-STOP | GND | GPS GND (optional second ground) |
+| P_2 jumper block (P_S / IO22 / PROBE) | | Jumper from the middle pin (IO22) to the PROBE end |
+| PROBE | signal | XIAO ESP32-C5 D6 (TX) |
+| PROBE | GND | XIAO GND |
+| SERVOS | IO29 | XIAO ESP32-C5 D7 (RX) |
+| SERVOS | 5V | XIAO 5V |
+| SERVOS | GND | XIAO GND |
+| IO0/IO1 header (labeled Laser on BTT's pinout, 5V_Power on the schematic) | IO0 | SDA of the ZS-042 and the BME280 |
+| IO0/IO1 header | IO1 | SCL of the ZS-042 and the BME280 |
+| IO0/IO1 header | GND | GND of the ZS-042 and the BME280 |
+| SWD header | pin 5 (3.3V) | VCC of the ZS-042 and the BME280 (not 5V) |
+| HE / HB | + / switched | Dew heaters (switched supply voltage) |
+| FAN1 / FAN2 / FAN3 | + / switched | Spare switched outputs (supply voltage) |
+| TH0 / THB | IO27 / IO26 | Spare thermistor inputs |
+| RGB | IO24 | Not used (one way buffer to the LED) |
+| POWER | 12/24V / GND | Main supply, plus the always-on driver cooling fan |
+| USB-C | | Mini PC (Serial A, firmware flashing) |
+
+Before connecting, check these two with a multimeter. Both were worked out from the square (pin 1) pads:
+
+1. SWD pin 5, at the end away from the square pad, reads 3.3V to GND with the board on USB and nothing else connected.
+2. With the P_2 jumper fitted and the power off, there's continuity between the PROBE connector's signal pin and the jumper block's middle pin.
+
+Make every connection with the power off. Plugging or unplugging motors while the board is powered can destroy the TMC2209 drivers.
+
 ### Building and flashing OnStepX
 
 Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing steps. To change settings, build from source:
