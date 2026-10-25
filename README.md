@@ -28,7 +28,7 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 | Z-STOP (GPIO25) | GPS PPS input |
 | E0-STOP (GPIO16) | GPS serial (receive only, PIO serial port, 9600 baud) |
 | PROBE (GPIO22, P_2/PROBE jumper fitted) + SERVOS (GPIO29) | Serial B for the SmartWebServer (PIO serial port): GPIO22 = Pico RX, GPIO29 = Pico TX |
-| 5V_Power header: TXD0 (GPIO0 = SDA), RXD0 (GPIO1 = SCL) | I2C (BME280, DS3231 + AT24C32 EEPROM) |
+| 5V_Power header: TXD0 (GPIO0 = SDA), RXD0 (GPIO1 = SCL) | I2C (BME280, DS3231 clock, MB85RC256V FRAM) |
 | HE / HB / FAN1 / FAN2 / FAN3 | AUX1..AUX5 MOSFET outputs (dew heaters, switches) |
 | TH0 (GPIO27) / THB (GPIO26) | Thermistor inputs for features 1 and 2 |
 | USB-C | Serial A |
@@ -58,10 +58,10 @@ The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https:
 | SERVOS | IO29 | XIAO ESP32-C5 D7 (RX) |
 | SERVOS | 5V | XIAO 5V |
 | SERVOS | GND | XIAO GND |
-| IO0/IO1 header (labeled Laser on BTT's pinout, 5V_Power on the schematic) | IO0 | SDA of the ZS-042 and the BME280 |
-| IO0/IO1 header | IO1 | SCL of the ZS-042 and the BME280 |
-| IO0/IO1 header | GND | GND of the ZS-042 and the BME280 |
-| SWD header | pin 5 (3.3V) | VCC of the ZS-042 and the BME280 (not 5V) |
+| IO0/IO1 header (labeled Laser on BTT's pinout, 5V_Power on the schematic) | IO0 | SDA of the ZS-042, BME280 and FRAM |
+| IO0/IO1 header | IO1 | SCL of the ZS-042, BME280 and FRAM |
+| IO0/IO1 header | GND | GND of the ZS-042, BME280 and FRAM |
+| SWD header | pin 5 (3.3V) | VCC of the ZS-042, BME280 and FRAM (not 5V) |
 | HE / HB | + / switched | Dew heaters (switched supply voltage) |
 | FAN1 / FAN2 / FAN3 | + / switched | Spare switched outputs (supply voltage) |
 | TH0 / THB | IO27 / IO26 | Spare thermistor inputs |
@@ -85,14 +85,14 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 3. Open `OnStepX/OnStepX.ino` and select the board **Raspberry Pi Pico**.
 4. Hold the board's BOOT button while plugging in USB, then upload (or copy the `.uf2` onto the drive that appears).
 
-### GPS, clock, weather sensor and EEPROM
+### GPS, clock, weather sensor and FRAM
 
-`Config.h` is set up for a GPS at 9600 baud with a PPS output (an ATGM336H board, for instance), a ZS-042 DS3231 module (which includes an AT24C32 EEPROM) and a BME280:
+`Config.h` is set up for a GPS at 9600 baud with a PPS output (an ATGM336H board, for instance), a ZS-042 DS3231 clock module, a BME280 and an MB85RC256V FRAM breakout:
 
 - `TIME_LOCATION_SOURCE GPS`, with `TIME_LOCATION_SOURCE_FALLBACK DS3231` so the time is right at power-on before the GPS has a fix
 - `TIME_LOCATION_PPS_SENSE HIGH` and `TIME_LOCATION_PPS_SYNC ON`, so the GPS pulse keeps the sidereal clock accurate
 - `WEATHER BME280`, at I2C address 0x77 (Adafruit). Many generic purple modules use 0x76; for those, use `BME280_0x76`
-- `NV_DRIVER NV_AT24C32`, so settings go to the ZS-042's EEPROM (I2C address 0x57) instead of the Pico's flash
+- `NV_DRIVER NV_MB85RC256`, so settings and the catalog library go to the 32 KB FRAM (I2C address 0x50) instead of the Pico's flash. That leaves about 28 KB, roughly 1,800 objects, for catalogs uploaded through the SmartWebServer. The ZS-042's own 4 KB EEPROM (0x57) isn't used. Leave the FRAM's A0/A1/A2 address pads unconnected (or tied to GND) so it stays at 0x50
 
 | Device pin | SKR Pico |
 |---|---|
@@ -100,9 +100,9 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 | GPS TX | E0-STOP signal pin (GPIO16) |
 | GPS PPS | Z-STOP signal pin (GPIO25) |
 | GPS RX | not connected |
-| ZS-042 and BME280 VCC / GND | **3.3V** (SWD header pin 5) / GND |
-| ZS-042 and BME280 SDA | TXD0 on the 5V_Power header (GPIO0) |
-| ZS-042 and BME280 SCL | RXD0 on the 5V_Power header (GPIO1) |
+| ZS-042, BME280 and FRAM VCC / GND | **3.3V** (SWD header pin 5) / GND |
+| ZS-042, BME280 and FRAM SDA | TXD0 on the 5V_Power header (GPIO0) |
+| ZS-042, BME280 and FRAM SCL | RXD0 on the 5V_Power header (GPIO1) |
 
 The Pico's pins don't tolerate 5V, and the ZS-042 pulls SDA/SCL up to its own supply, so power the I2C modules from 3.3V, not the 5V on those headers. The ZS-042 also has a battery charging circuit meant for a rechargeable LIR2032. With a regular CR2032, remove the charging resistor (or its diode) so the battery isn't charged.
 
