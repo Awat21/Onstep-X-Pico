@@ -44,7 +44,7 @@
 
 // I2C on GPIO0 (SDA) and GPIO1 (SCL), Connector Labeled 5V_Power (pins TXD0 and RXD0), the only free pins with a
 // direct connection that support I2C (GPIO24 on the RGB connector goes through a one way buffer). This connector has
-// 5V and GND but power I2C devices from 3.3V (SWD connector pin 5), the RP2040 isn't 5V tolerant.
+// 5V and GND but power I2C devices from 3.3V (an ESP SmartWebServer's 3V3 pin, or SWD connector pin 5), the RP2040 isn't 5V tolerant.
 #ifndef I2C_SDA_PIN
   #define I2C_SDA_PIN           0
 #endif

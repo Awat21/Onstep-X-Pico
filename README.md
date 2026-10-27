@@ -61,7 +61,7 @@ The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https:
 | IO0/IO1 header (labeled Laser on BTT's pinout, 5V_Power on the schematic) | IO0 | SDA of the ZS-042, BME280 and FRAM |
 | IO0/IO1 header | IO1 | SCL of the ZS-042, BME280 and FRAM |
 | IO0/IO1 header | GND | GND of the ZS-042, BME280 and FRAM |
-| SWD header | pin 5 (3.3V) | VCC of the ZS-042, BME280 and FRAM (not 5V) |
+| (XIAO ESP32-C5) | 3V3 | VCC of the ZS-042, BME280 and FRAM (not 5V) |
 | HE / HB | + / switched | Dew heaters (switched supply voltage) |
 | FAN1 / FAN2 / FAN3 | + / switched | Spare switched outputs (supply voltage) |
 | TH0 / THB | IO27 / IO26 | Spare thermistor inputs |
@@ -69,10 +69,9 @@ The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https:
 | POWER | 12/24V / GND | Main supply, plus the always-on driver cooling fan |
 | USB-C | | Mini PC (Serial A, firmware flashing) |
 
-Before connecting, check these two with a multimeter. Both were worked out from the square (pin 1) pads:
+The I2C modules take their 3.3V from the XIAO's 3V3 pin. Their load is only a few milliamps, and the XIAO's GND is already tied to the SKR Pico through the SERVOS connector, so SDA and SCL share the board's ground. Keep the XIAO connected, because without it the clock, weather sensor and FRAM have no power and OnStepX falls back to the Pico's flash. Pin 5 of the SKR Pico's SWD header is also 3.3V (from the board's own regulator) if you ever want the modules independent of the XIAO.
 
-1. SWD pin 5, at the end away from the square pad, reads 3.3V to GND with the board on USB and nothing else connected.
-2. With the P_2 jumper fitted and the power off, there's continuity between the PROBE connector's signal pin and the jumper block's middle pin.
+Before connecting, check this with a multimeter (worked out from the square, pin 1, pad of the jumper block): with the P_2 jumper fitted and the power off, there's continuity between the PROBE connector's signal pin and the jumper block's middle pin.
 
 Make every connection with the power off. Plugging or unplugging motors while the board is powered can destroy the TMC2209 drivers.
 
@@ -100,11 +99,11 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 | GPS TX | E0-STOP signal pin (GPIO16) |
 | GPS PPS | Z-STOP signal pin (GPIO25) |
 | GPS RX | not connected |
-| ZS-042, BME280 and FRAM VCC / GND | **3.3V** (SWD header pin 5) / GND |
+| ZS-042, BME280 and FRAM VCC / GND | **3.3V** (XIAO 3V3 pin) / GND |
 | ZS-042, BME280 and FRAM SDA | TXD0 on the 5V_Power header (GPIO0) |
 | ZS-042, BME280 and FRAM SCL | RXD0 on the 5V_Power header (GPIO1) |
 
-The Pico's pins don't tolerate 5V, and the ZS-042 pulls SDA/SCL up to its own supply, so power the I2C modules from 3.3V, not the 5V on those headers. The ZS-042 also has a battery charging circuit meant for a rechargeable LIR2032. With a regular CR2032, remove the charging resistor (or its diode) so the battery isn't charged.
+The Pico's pins don't tolerate 5V, and the ZS-042 pulls SDA/SCL up to its own supply, so power the I2C modules from 3.3V (the XIAO's 3V3 pin), not the 5V on those headers. The ZS-042 also has a battery charging circuit meant for a rechargeable LIR2032. With a regular CR2032, remove the charging resistor (or its diode) so the battery isn't charged.
 
 The GPS has to stay at 9600 baud: the E0-STOP input has a small RC filter (100R and 0.1uF) that is fine at that rate but too slow for faster ones. A u-blox board (38400 baud by default) needs its baud rate set to 9600 once, with u-center for instance, and `SERIAL_GPS_BAUD` left at its default.
 
@@ -122,3 +121,4 @@ The SmartWebServer runs on a Seeed Studio XIAO ESP32-C5, with a pinmap in `Smart
 | D7 (RX, GPIO12) | SERVOS signal pin (GPIO29) |
 | 5V | 5V on the SERVOS or 5V_Power connector |
 | GND | GND |
+| 3V3 | VCC of the ZS-042, BME280 and FRAM |
