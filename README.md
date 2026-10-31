@@ -90,7 +90,7 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 
 - `TIME_LOCATION_SOURCE GPS`, with `TIME_LOCATION_SOURCE_FALLBACK DS3231` so the time is right at power-on before the GPS has a fix
 - `TIME_LOCATION_PPS_SENSE HIGH` and `TIME_LOCATION_PPS_SYNC ON`, so the GPS pulse keeps the sidereal clock accurate
-- `WEATHER BME280`, at I2C address 0x77 (Adafruit). Many generic purple modules use 0x76; for those, use `BME280_0x76`
+- `WEATHER BME280_0x76`, for a BME280 at I2C address 0x76 (most generic purple modules). For one at 0x77 (Adafruit, or SDO tied to 3.3V) use `BME280`
 - `NV_DRIVER NV_MB85RC256`, so settings and the catalog library go to the 32 KB FRAM (I2C address 0x50) instead of the Pico's flash. That leaves about 28 KB, roughly 1,800 objects, for catalogs uploaded through the SmartWebServer. If your DS3231 board also carries an EEPROM (often at 0x57), it isn't used. Leave the FRAM's A0/A1/A2 address pads unconnected (or tied to GND) so it stays at 0x50
 
 | Device pin | SKR Pico |
