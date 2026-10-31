@@ -125,6 +125,7 @@ const char html_main_css_core[] PROGMEM =
 "input, select, textarea { font: inherit; font-weight: 600; color: var(--fg-hi); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 3px 6px; margin: 3px; text-align: center; width: 5em; } "
 "select { width: auto; text-align: left; } "
 "input[type=range] { border: none; background: none; padding: 0; accent-color: var(--accent); } "
+"input[type=checkbox], input[type=radio] { accent-color: var(--accent); } "
 "input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); } "
 "button { font: inherit; font-weight: 600; color: var(--accent); background: var(--card-hi); border: 1px solid var(--accent); border-radius: 8px; margin: 2px; padding: 4px 12px; cursor: pointer; } "
 "button:hover { background: var(--sel); } button:active, button.sel { background: var(--accent); color: var(--bg); } "

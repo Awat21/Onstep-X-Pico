@@ -3,6 +3,7 @@
 #pragma once
 
 #include "../../Common.h"
+#include "DebugLog.h"
 
 #if DEBUG == PROFILER
   #define TASKS_PROFILER_ENABLE

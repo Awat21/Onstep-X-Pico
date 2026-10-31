@@ -75,6 +75,9 @@ void handleRoot()
 
   data.concat(F("<br class=\"clear\" />\n"));
 
+  logTile(data);
+  data.concat(F("<br class=\"clear\" />\n"));
+
   #if DISPLAY_SERVO_MONITOR == ON
     data.concat(F("<hr>"));
     servoTile(data);

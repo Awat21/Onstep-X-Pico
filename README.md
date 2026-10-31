@@ -111,6 +111,14 @@ There are no free inputs for a PEC index or limit switch. To use one, add `#defi
 
 The RGB connector (GPIO24) can't be used for I2C or other inputs: it goes through a one way 5V buffer to drive the RGB LED.
 
+### OnStep log
+
+OnStepX keeps its status and error messages (`DEBUG VERBOSE`, plus failed commands with `DEBUG_ECHO_COMMANDS ERRORS_ONLY`) in a 16 KB RAM buffer instead of printing them on USB, so the USB port stays clean for LX200/ASCOM. Each line starts with the time since boot in seconds. The settings are in `OnStepX/Extended.config.h` (`SERIAL_DEBUG debugLog`, `DEBUG_LOG_SIZE`).
+
+The SmartWebServer collects that log in the background (keeping the most recent 32 KB) and shows it in the **OnStep Log** tile at the bottom of the Controller page, with buttons to copy it, download it as a text file, or clear it. Messages from startup are kept, so the log is complete even if the page is opened later.
+
+Under the hood this uses a new command, `:GXLG,n#`, which returns `s,e|text#`: up to 50 characters of the log starting at position `n` (the count of characters written since boot), where `s` is where the text actually starts and `e` is the position after it.
+
 ### SmartWebServer
 
 The SmartWebServer runs on a Seeed Studio XIAO ESP32-C5, with a pinmap in `SmartWebServer/src/pinmaps/Pins.XiaoEsp32c5.h`. In the Arduino IDE, use the Espressif ESP32 package (3.3 or newer) and select the board **XIAO_ESP32C5**. Out of the box it starts its own Wi-Fi network, "OnStep-SWS" (password `password`), with the web interface at http://192.168.0.1. From there you can join it to your home network, or change the defaults in `SmartWebServer/Extended.config.h` before flashing.

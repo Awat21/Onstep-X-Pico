@@ -9,6 +9,7 @@
 void handleRoot();
 void indexAjaxGet();
 void indexAjax();
+void logTileGet();
 
 void handleMount();
 void mountAjaxGet();

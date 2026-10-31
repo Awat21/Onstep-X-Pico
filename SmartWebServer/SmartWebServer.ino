@@ -60,6 +60,7 @@ bool otaEnabled = false;
 #include "src/libApp/bleGamepad/BleGamepad.h"
 #include "src/libApp/encoders/Encoders.h"
 #include "src/libApp/status/Status.h"
+#include "src/libApp/onStepLog/OnStepLog.h"
 
 #include "src/pages/Pages.h"
 
@@ -283,6 +284,7 @@ Again:
   www.on("/index.htm", handleRoot);
   www.on("/index-ajax-get.txt", indexAjaxGet);
   www.on("/index.txt", indexAjax);
+  www.on("/log.txt", logTileGet);
 
   www.on("/mount.htm", handleMount);
   www.on("/mount-ajax-get.txt", mountAjaxGet);
@@ -372,6 +374,7 @@ Again:
   }
 
   state.init();
+  onStepLog.init();
 
   VF("MSG: Setup, starting cmd channel polling");
   VF(" task (rate 5ms priority 2)... ");

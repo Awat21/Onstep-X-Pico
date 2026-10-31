@@ -172,6 +172,20 @@ void CommandProcessor::poll() {
 CommandError CommandProcessor::command(char *reply, char *command, char *parameter, bool *suppressFrame, bool *numericReply) {
   commandError = CE_NONE;
 
+  #if DEBUG_LOG_SIZE > 0
+    // :GXLG,n#   Get debug log text starting at position n (count of characters written since boot)
+    //            Returns: s,e|text# where s is the position the text starts at and e is the position after it
+    if (command[0] == 'G' && command[1] == 'X' && parameter[0] == 'L' && parameter[1] == 'G' && (parameter[2] == ',' || parameter[2] == 0)) {
+      uint32_t from = (parameter[2] == ',') ? strtoul(&parameter[3], NULL, 10) : 0;
+      uint32_t start, next;
+      char text[DEBUG_LOG_READ_LEN + 1];
+      debugLog.read(from, text, sizeof(text), &start, &next);
+      snprintf(reply, 80, "%lu,%lu|%s", (unsigned long)start, (unsigned long)next, text);
+      *numericReply = false;
+      return commandError;
+    }
+  #endif
+
   // handle telescope commands
   if (telescope.command(reply, command, parameter, suppressFrame, numericReply, &commandError)) return commandError;
 
