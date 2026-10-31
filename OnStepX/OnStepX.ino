@@ -96,6 +96,18 @@ void setup() {
 
   // list the I2C devices that answer, helps when a sensor, clock or EEPROM isn't found
   #if DEBUG == VERBOSE
+    // idle SDA and SCL are held high by the devices' pull-up resistors, so a weak pull-down should read high
+    #if I2C_SDA_PIN != OFF && I2C_SCL_PIN != OFF
+      pinMode(I2C_SDA_PIN, INPUT_PULLDOWN);
+      pinMode(I2C_SCL_PIN, INPUT_PULLDOWN);
+      delay(2);
+      bool sdaHigh = digitalRead(I2C_SDA_PIN) == HIGH;
+      bool sclHigh = digitalRead(I2C_SCL_PIN) == HIGH;
+      VF("MSG: System, I2C idle levels SDA="); V(sdaHigh ? "high" : "LOW"); VF(" SCL="); VL(sclHigh ? "high" : "LOW");
+      if (!sdaHigh || !sclHigh) { DLF("WRN: System, I2C line(s) not pulled up, check the I2C devices have power (3.3V), GND, and are on SDA/SCL"); }
+      pinMode(I2C_SDA_PIN, INPUT);
+      pinMode(I2C_SCL_PIN, INPUT);
+    #endif
     HAL_WIRE.begin();
     VF("MSG: System, I2C devices found at");
     int i2cFound = 0;
