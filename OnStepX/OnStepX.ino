@@ -94,6 +94,18 @@ void setup() {
   HAL_INIT();
   WIRE_INIT();
 
+  // list the I2C devices that answer, helps when a sensor, clock or EEPROM isn't found
+  #if DEBUG == VERBOSE
+    HAL_WIRE.begin();
+    VF("MSG: System, I2C devices found at");
+    int i2cFound = 0;
+    for (uint8_t address = 0x08; address < 0x78; address++) {
+      HAL_WIRE.beginTransmission(address);
+      if (HAL_WIRE.endTransmission() == 0) { VF(" 0x"); if (DEBUG != OFF) SERIAL_DEBUG.print(address, HEX); i2cFound++; }
+    }
+    if (i2cFound == 0) VLF(": none"); else VLF("");
+  #endif
+
   analog.begin();
 
   nv().setGate(&xBusy);
