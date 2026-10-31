@@ -4,7 +4,7 @@ Built with the settings in `OnStepX/Config.h` and `SmartWebServer/Config.h` at t
 
 | File | Board | Built from | Build |
 |---|---|---|---|
-| `OnStepX-SKR-Pico.uf2` | BTT SKR Pico v1.0 | `bae5da6` | Arduino-Pico core 6.3.0, board "Raspberry Pi Pico" |
+| `OnStepX-SKR-Pico.uf2` | BTT SKR Pico v1.0 | `ed60172` | Arduino-Pico core 6.3.0, board "Raspberry Pi Pico" |
 | `SmartWebServer-XIAO-ESP32C5-merged.bin` | Seeed Studio XIAO ESP32-C5 | `bae5da6` | Espressif ESP32 core 3.3.12, board "XIAO_ESP32C5" |
 
 ## Flashing the SKR Pico
