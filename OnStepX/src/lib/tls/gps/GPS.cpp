@@ -111,6 +111,25 @@ bool TlsGPS::init() {
     }
   }
 
+  // show the raw data as received, garbled characters point to a signal (or baud rate) problem
+  #if DEBUG == VERBOSE
+    char raw[121];
+    int n = 0;
+    unsigned long rawTimeout = millis() + 1500U;
+    while ((long)(millis() - rawTimeout) < 0 && n < 120) {
+      while (SERIAL_GPS.available() > 0 && n < 120) {
+        char c = SERIAL_GPS.read();
+        gps.encode(c);
+        if (c == '\r') continue;
+        raw[n++] = (c == '\n') ? '|' : ((c >= 32 && c < 127) ? c : '~');
+      }
+      Y;
+    }
+    raw[n] = 0;
+    VF("MSG: TLS, GPS raw data: "); VL(raw);
+    VF("MSG: TLS, GPS sentences so far good="); V(gps.passedChecksum()); VF(" bad="); VL(gps.failedChecksum());
+  #endif
+
   VF("MSG: TLS, GPS start monitor task (rate 10ms priority 7)... ");
   if (tasks.add(10, 0, true, 7, gpsPoll, "gpsPoll")) { VLF("success"); active = true; } else { VLF("FAILED!"); }
 
