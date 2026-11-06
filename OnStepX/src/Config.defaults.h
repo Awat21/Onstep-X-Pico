@@ -740,6 +740,9 @@
 #ifndef TIME_LOCATION_PPS_SYNC
 #define TIME_LOCATION_PPS_SYNC        OFF                         // adjust timer rates to keep time in sync with PPS
 #endif
+#ifndef TIME_LOCATION_PPS_REQUIRED
+#define TIME_LOCATION_PPS_REQUIRED    ON                          // with PPS sense, wait for PPS sync before reading the GPS
+#endif
 
 // limits
 #ifndef LIMIT_SENSE

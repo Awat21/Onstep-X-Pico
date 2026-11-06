@@ -156,6 +156,9 @@
                                           //         falling edge, or use BOTH for rising and falling edges.
 #define TIME_LOCATION_SOURCE_FALLBACK DS3231 // OFF, DS3231 (I2C,) etc. Used until the GPS has a fix (or if it never does.)   Option
 #define TIME_LOCATION_PPS_SYNC         ON //    OFF, ON adjusts the sidereal clock rate to stay in sync with the PPS signal.  Option
+#define TIME_LOCATION_PPS_REQUIRED    OFF //     ON, ON waits for PPS sync before using the GPS, OFF uses the GPS once it has  Option
+                                          //         a fix (location and date/time come from its serial data, not PPS.)
+#define GPS_TIMEOUT_MINUTES             0 //     10, n. Minutes to wait for a GPS fix before giving up, 0 never gives up.      Option
 
 // STATUS ------------------------------------------------------ see https://onstep.groups.io/g/main/wiki/Configuration_Mount#STATUS
 #define STATUS_MOUNT_LED              OFF //    OFF, ON Flashes proportional to rate of movement or solid on for slews.       Option

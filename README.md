@@ -90,6 +90,9 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 
 - `TIME_LOCATION_SOURCE GPS`, with `TIME_LOCATION_SOURCE_FALLBACK DS3231` so the time is right at power-on before the GPS has a fix
 - `TIME_LOCATION_PPS_SENSE HIGH` and `TIME_LOCATION_PPS_SYNC ON`, so the GPS pulse keeps the sidereal clock accurate
+- `TIME_LOCATION_PPS_REQUIRED OFF`, so OnStepX uses the GPS location and date/time (from its serial data) as soon as the GPS has a fix, without waiting for PPS. OnStepX then waits about 2 more minutes (`GPS_MIN_WAIT_MINUTES`) for the fix to settle
+- `GPS_TIMEOUT_MINUTES 0`, so OnStepX never stops waiting for the GPS (the default gives up after 10 minutes)
+- With `DEBUG VERBOSE` the OnStep Log shows a GPS status line every 30 seconds until the GPS is ready: characters received, sentences with a fix, satellites, whether location and date/time are valid, and PPS pulses counted
 - `WEATHER BME280_0x76`, for a BME280 at I2C address 0x76 (most generic purple modules). For one at 0x77 (Adafruit, or SDO tied to 3.3V) use `BME280`
 - `NV_DRIVER NV_MB85RC256`, so settings and the catalog library go to the 32 KB FRAM (I2C address 0x50) instead of the Pico's flash. That leaves about 28 KB, roughly 1,800 objects, for catalogs uploaded through the SmartWebServer. If your DS3231 board also carries an EEPROM (often at 0x57), it isn't used. Leave the FRAM's A0/A1/A2 address pads unconnected (or tied to GND) so it stays at 0x50
 

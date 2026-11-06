@@ -22,6 +22,7 @@ class Pps {
     volatile unsigned long averageSubMicros = 16000000UL;
     long averageSubMicrosSkew = 0;
     volatile unsigned long lastMicros = 0UL;
+    volatile unsigned long pulses = 0UL;   // count of pulses seen, for status logging
   private:
 };
 

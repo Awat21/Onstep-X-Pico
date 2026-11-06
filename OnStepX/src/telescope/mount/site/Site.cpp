@@ -56,7 +56,7 @@ IRAM_ATTR void clockTickWrapper() { fracLAST++; }
       tasks.setDurationComplete(tasks.getHandleByName("gpsChk"));
     } else
 
-    if ((long)(millis() - site.updateTimeoutTime) > 0) {
+    if (GPS_TIMEOUT_MINUTES > 0 && (long)(millis() - site.updateTimeoutTime) > 0) {
       DLF("WRN: Mount, GPS timed out stopping monitor task");
       tasks.setDurationComplete(tasks.getHandleByName("gpsChk"));
       DLF("WRN: TLS, GPS timed out stopping GPS polling task");

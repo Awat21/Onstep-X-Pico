@@ -19,6 +19,7 @@ void ppsIsr() {
     tasks.setPeriodRatioSubMicros(16000000UL);
   }
   pps.lastMicros = t;
+  pps.pulses++;
 }
 
 void Pps::init() {

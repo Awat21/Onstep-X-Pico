@@ -54,13 +54,31 @@ TinyGPSPlus gps;
 TlsGPS *tlsGps;
 
 void gpsPoll() {
-  #if (TIME_LOCATION_PPS_SENSE) != OFF
+  // status every 30 seconds until the GPS is ready
+  #if DEBUG == VERBOSE
+    static unsigned long nextStatus = 30000UL;
+    if ((long)(millis() - nextStatus) > 0) {
+      nextStatus = millis() + 30000UL;
+      VF("MSG: TLS, GPS status chars="); V(gps.charsProcessed());
+      VF(" fixes="); V(gps.sentencesWithFix());
+      VF(" bad="); V(gps.failedChecksum());
+      VF(" sats="); if (gps.satellites.isValid()) { V(gps.satellites.value()); } else { VF("?"); }
+      VF(" location="); V(gps.location.isValid() ? "valid" : "none");
+      VF(" date/time="); V(gps.date.isValid() && gps.time.isValid() ? "valid" : "none");
+      #if (TIME_LOCATION_PPS_SENSE) != OFF
+        VF(" pps pulses="); V(pps.pulses); VF(pps.synced ? " (synced)" : " (not synced)");
+      #endif
+      VL("");
+    }
+  #endif
+
+  #if (TIME_LOCATION_PPS_SENSE) != OFF && TIME_LOCATION_PPS_REQUIRED == ON
     if (pps.synced) {
   #endif
 
   if (!tlsGps->isReady()) tlsGps->poll();
 
-  #if (TIME_LOCATION_PPS_SENSE) != OFF
+  #if (TIME_LOCATION_PPS_SENSE) != OFF && TIME_LOCATION_PPS_REQUIRED == ON
     }
   #endif
 }
@@ -133,11 +151,13 @@ bool TlsGPS::get(JulianDate &ut1) {
 
   double second = gps.time.second() + gps.time.age()/1000.0;
   #if defined(TIME_LOCATION_PPS_SENSE) && (TIME_LOCATION_PPS_SENSE) != OFF
-    if (pps.synced) {
+    // only use PPS if a pulse arrived within the last second, otherwise the wait below would never end
+    if (pps.synced && micros() - pps.lastMicros < 1000000UL) {
       unsigned long t;
-      // wait until we're roughly in the middle of a second
-      do { t = micros() - pps.lastMicros; } while (t < 400000 || t > 600000);
-      second = floor(gps.time.second() + gps.time.age()/1000.0) + t/1000000.0;
+      unsigned long start = millis();
+      // wait until we're roughly in the middle of a second (give up after 1.5s if the pulses stop)
+      do { t = micros() - pps.lastMicros; } while ((t < 400000 || t > 600000) && millis() - start < 1500UL);
+      if (t >= 400000 && t <= 600000) second = floor(gps.time.second() + gps.time.age()/1000.0) + t/1000000.0;
     }
   #endif
 
