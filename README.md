@@ -21,8 +21,8 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 | Board connector | OnStepX use |
 |---|---|
 | X driver | Axis1 (RA/Azm), TMC2209 UART address 0 |
-| Y driver | Axis2 (Dec/Alt), TMC2209 UART address 2 |
-| Z driver (Z1/Z2) | Axis3 (rotator), TMC2209 UART address 1 |
+| Z driver (Z1/Z2) | Axis2 (Dec/Alt), TMC2209 UART address 1 (with `SKR_PICO_AXIS2_ON_Z ON`, since this board's Y driver is faulty) |
+| Y driver | Not used (would be Axis3, the rotator, which is off) |
 | E driver | Axis4 (focuser 1), TMC2209 UART address 3 |
 | X-STOP (GPIO4) / Y-STOP (GPIO3) | Axis1 / Axis2 home switch |
 | Z-STOP (GPIO25) | GPS PPS input |
@@ -42,8 +42,8 @@ The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https:
 | SKR Pico connector | Pin | Wire to |
 |---|---|---|
 | X driver | 2B 1B 1A 2A | RA motor (Axis1), 17HM19-2004S |
-| Y driver | 2B 1B 1A 2A | Dec motor (Axis2), 17HM19-2004S |
-| Z1 / Z2 driver | 2B 1B 1A 2A | Rotator (Axis3), optional, not enabled in `Config.h` |
+| Z1 (or Z2) driver | 2B 1B 1A 2A | Dec motor (Axis2), 17HM19-2004S (`SKR_PICO_AXIS2_ON_Z ON`) |
+| Y driver | | Not used: this board's Y driver doesn't deliver power |
 | E driver | 2B 1B 1A 2A | Focuser 1 (Axis4), optional, not enabled in `Config.h` |
 | X-STOP | IO4 / GND | RA home switch, optional |
 | Y-STOP | IO3 / GND | Dec home switch, optional |
@@ -90,7 +90,7 @@ Prebuilt files for both boards are in [`firmware/`](firmware/), with flashing st
 
 - `TIME_LOCATION_SOURCE GPS`, with `TIME_LOCATION_SOURCE_FALLBACK DS3231` so the time is right at power-on before the GPS has a fix
 - `TIME_LOCATION_PPS_SENSE HIGH` and `TIME_LOCATION_PPS_SYNC ON`, so the GPS pulse keeps the sidereal clock accurate
-- `TIME_LOCATION_PPS_REQUIRED OFF`, so OnStepX uses the GPS location and date/time (from its serial data) as soon as the GPS has a fix, without waiting for PPS. OnStepX then waits about 2 more minutes (`GPS_MIN_WAIT_MINUTES`) for the fix to settle
+- `TIME_LOCATION_PPS_REQUIRED OFF`, so OnStepX uses the GPS location and date/time (from its serial data) as soon as the GPS has a fix, without waiting for PPS. `GPS_MIN_WAIT_MINUTES 0` uses the fix right away instead of waiting 2 minutes for it to settle
 - `GPS_TIMEOUT_MINUTES 0`, so OnStepX never stops waiting for the GPS (the default gives up after 10 minutes)
 - With `DEBUG VERBOSE` the OnStep Log shows a GPS status line every 30 seconds until the GPS is ready: characters received, sentences with a fix, satellites, whether location and date/time are valid, and PPS pulses counted
 - `WEATHER BME280_0x76`, for a BME280 at I2C address 0x76 (most generic purple modules). For one at 0x77 (Adafruit, or SDO tied to 3.3V) use `BME280`

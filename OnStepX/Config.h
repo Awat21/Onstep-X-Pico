@@ -19,6 +19,7 @@
 // PINMAP ------------------------------------------------- see https://onstep.groups.io/g/main/wiki/Configuration_Controller#PINMAP
 #define PINMAP               BTT_SKR_PICO //    OFF, Choose from: MiniPCB, MiniPCB2, MaxPCB4, MaxESP4, MaxSTM3, FYSETC_E4,   <-Req'd
                                           //         BTT_SKR_PRO, etc.  Other boards and more info. in ~/src/Constants.h
+#define SKR_PICO_AXIS2_ON_Z            ON //    OFF, ON drives Axis2 (Dec/Alt) from the Z driver (Z1/Z2), the Y driver is faulty.
 
 // SERIAL PORT COMMAND CHANNELS --------------------- see https://onstep.groups.io/g/main/wiki/Configuration_Controller#SERIAL_PORTS
 #define SERIAL_A_BAUD_DEFAULT        9600 //   9600, n. Where n=9600,19200,57600,115200,230400,460800 (common baud rates.)    Infreq
@@ -159,6 +160,7 @@
 #define TIME_LOCATION_PPS_REQUIRED    OFF //     ON, ON waits for PPS sync before using the GPS, OFF uses the GPS once it has  Option
                                           //         a fix (location and date/time come from its serial data, not PPS.)
 #define GPS_TIMEOUT_MINUTES             0 //     10, n. Minutes to wait for a GPS fix before giving up, 0 never gives up.      Option
+#define GPS_MIN_WAIT_MINUTES            0 //      2, n. Minutes to let the GPS fix settle before using it, 0 uses it right away. Option
 
 // STATUS ------------------------------------------------------ see https://onstep.groups.io/g/main/wiki/Configuration_Mount#STATUS
 #define STATUS_MOUNT_LED              OFF //    OFF, ON Flashes proportional to rate of movement or solid on for slews.       Option

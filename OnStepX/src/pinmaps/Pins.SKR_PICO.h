@@ -4,6 +4,12 @@
 
 #if defined(ARDUINO_ARCH_RP2040)
 
+// Axis2 (Dec/Alt) normally uses the Y driver, "#define SKR_PICO_AXIS2_ON_Z ON" in Config.h moves it to the Z driver
+// (Z1/Z2 connectors) and the rotator (Axis3) to the Y driver, for instance if the Y driver is faulty
+#ifndef SKR_PICO_AXIS2_ON_Z
+  #define SKR_PICO_AXIS2_ON_Z   OFF
+#endif
+
 // Serial: Built in USB (not TTL)
 // Serial2: RX2 Pin GPIO9, TX2 Pin GPIO8 (TMC2209 UART, all four drivers)
 // GPIO0/GPIO1 (UART0) are used for I2C instead, see below, so Serial B and the GPS use PIO based serial ports
@@ -34,7 +40,11 @@
   #define SERIAL_TMC_BAUD       460800           // Baud rate
   #define SERIAL_TMC_RX         9                // Recieving data
   #define SERIAL_TMC_TX         8                // Transmit data (through 1K to PDN_UART on each driver)
-  #define SERIAL_TMC_ADDRESS_MAP(x) ((x==1)?2 : ((x==2)?1 : x)) // X(Axis1) is 0, Y(Axis2) is 2, Z(Axis3) is 1, E(Axis4) is 3
+  #if SKR_PICO_AXIS2_ON_Z == ON
+    #define SERIAL_TMC_ADDRESS_MAP(x) (x)                       // X(Axis1) is 0, Z(Axis2) is 1, Y(Axis3) is 2, E(Axis4) is 3
+  #else
+    #define SERIAL_TMC_ADDRESS_MAP(x) ((x==1)?2 : ((x==2)?1 : x)) // X(Axis1) is 0, Y(Axis2) is 2, Z(Axis3) is 1, E(Axis4) is 3
+  #endif
 #endif
 
 // allow RX from TMC UART drivers
@@ -102,26 +112,38 @@
   #define AXIS1_SENSE_HOME_PIN  4                // Connector Labeled X-STOP
 #endif
 
-// Axis2 Dec/Alt step/dir driver (Labeled Y)
-#define AXIS2_ENABLE_PIN        7
-#define AXIS2_M0_PIN            OFF              // hardwired for TMC UART address 2
-#define AXIS2_M1_PIN            OFF              // hardwired for TMC UART address 2
+// Axis2 Dec/Alt step/dir driver (Labeled Y, or Z with SKR_PICO_AXIS2_ON_Z)
+#if SKR_PICO_AXIS2_ON_Z == ON
+  #define AXIS2_ENABLE_PIN      2                // Z driver (Z1/Z2 connectors), TMC UART address 1
+  #define AXIS2_STEP_PIN        19
+  #define AXIS2_DIR_PIN         28
+#else
+  #define AXIS2_ENABLE_PIN      7                // Y driver, TMC UART address 2
+  #define AXIS2_STEP_PIN        6
+  #define AXIS2_DIR_PIN         5
+#endif
+#define AXIS2_M0_PIN            OFF              // hardwired for TMC UART address
+#define AXIS2_M1_PIN            OFF              // hardwired for TMC UART address
 #define AXIS2_M2_PIN            OFF              // UART TX
 #define AXIS2_M3_PIN            OFF              // UART RX
-#define AXIS2_STEP_PIN          6
-#define AXIS2_DIR_PIN           5
 #ifndef AXIS2_SENSE_HOME_PIN
   #define AXIS2_SENSE_HOME_PIN  3                // Connector Labeled Y-STOP
 #endif
 
-// For rotator stepper driver (Labeled Z, the Z1 and Z2 motor connectors are wired in parallel)
-#define AXIS3_ENABLE_PIN        2
-#define AXIS3_M0_PIN            OFF              // hardwired for TMC UART address 1
-#define AXIS3_M1_PIN            OFF              // hardwired for TMC UART address 1
+// For rotator stepper driver (Labeled Z, the Z1 and Z2 motor connectors are wired in parallel, or Y with SKR_PICO_AXIS2_ON_Z)
+#if SKR_PICO_AXIS2_ON_Z == ON
+  #define AXIS3_ENABLE_PIN      7                // Y driver, TMC UART address 2
+  #define AXIS3_STEP_PIN        6
+  #define AXIS3_DIR_PIN         5
+#else
+  #define AXIS3_ENABLE_PIN      2                // Z driver (Z1/Z2 connectors), TMC UART address 1
+  #define AXIS3_STEP_PIN        19
+  #define AXIS3_DIR_PIN         28
+#endif
+#define AXIS3_M0_PIN            OFF              // hardwired for TMC UART address
+#define AXIS3_M1_PIN            OFF              // hardwired for TMC UART address
 #define AXIS3_M2_PIN            OFF              // UART TX
 #define AXIS3_M3_PIN            OFF              // UART RX
-#define AXIS3_STEP_PIN          19
-#define AXIS3_DIR_PIN           28
 
 // For focuser1 stepper driver (Labeled E)
 #define AXIS4_ENABLE_PIN        15
