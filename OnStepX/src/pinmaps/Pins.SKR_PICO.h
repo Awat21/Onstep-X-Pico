@@ -37,7 +37,9 @@
 #if defined(STEP_DIR_TMC_UART_PRESENT) || defined(SERVO_TMC2209_PRESENT)
   #define SERIAL_TMC_HARDWARE_UART
   #define SERIAL_TMC            Serial2          // Use a single hardware serial port to up to four drivers
-  #define SERIAL_TMC_BAUD       460800           // Baud rate
+  #ifndef SERIAL_TMC_BAUD
+    #define SERIAL_TMC_BAUD     115200           // Baud rate, kept low since 460800 was unreliable on this board's shared line
+  #endif
   #define SERIAL_TMC_RX         9                // Recieving data
   #define SERIAL_TMC_TX         8                // Transmit data (through 1K to PDN_UART on each driver)
   #if SKR_PICO_AXIS2_ON_Z == ON

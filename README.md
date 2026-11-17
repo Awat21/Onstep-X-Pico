@@ -29,7 +29,7 @@ OnStepX has been adapted to run on the [BigTreeTech SKR Pico v1.0](https://githu
 | E0-STOP (GPIO16) | GPS serial (receive only, PIO serial port, 9600 baud) |
 | PROBE (GPIO22, P_2/PROBE jumper fitted) + SERVOS (GPIO29) | Serial B for the SmartWebServer (PIO serial port): GPIO22 = Pico RX, GPIO29 = Pico TX |
 | 5V_Power header: TXD0 (GPIO0 = SDA), RXD0 (GPIO1 = SCL) | I2C (BME280, DS3231 clock, MB85RC256V FRAM) |
-| HE / HB / FAN1 / FAN2 / FAN3 | AUX1..AUX5 MOSFET outputs (HE/HB dew heaters, FAN1-3 always on) |
+| HE / HB / FAN1 / FAN2 / FAN3 | AUX1..AUX5 MOSFET outputs (HE/HB dew heaters, FAN1-3 switches, on at startup) |
 | TH0 (GPIO27) / THB (GPIO26) | Thermistor inputs for features 1 and 2 |
 | USB-C | Serial A |
 
@@ -63,7 +63,7 @@ The diagram is BIGTREETECH's SKR Pico pinout (from [bigtreetech/skr-pico](https:
 | IO0/IO1 header | GND | GND of the DS3231, BME280 and FRAM |
 | (XIAO ESP32-C5) | 3V3 | VCC of the DS3231, BME280 and FRAM (not 5V) |
 | HE / HB | + / switched | Dew heaters (switched supply voltage) |
-| FAN1 / FAN2 / FAN3 | + / switched | Cooling fan, switched on at startup (supply voltage, so use 12V fans on 12V) |
+| FAN1 / FAN2 / FAN3 | + / switched | Cooling fan, on at startup and switchable from the SWS Auxiliary page (supply voltage, so use 12V fans on 12V) |
 | TH0 / THB | IO27 / IO26 | Spare thermistor inputs |
 | RGB | IO24 | Not used (one way buffer to the LED) |
 | POWER | 12/24V / GND | Main supply, plus the always-on driver cooling fan |

@@ -77,17 +77,6 @@ bool StepDirTmc2209::init() {
     VF("MSG:"); V(axisPrefix);
     VF("HW UART driver pins rx="); V(SERIAL_TMC_RX); VF(", tx="); V(SERIAL_TMC_TX); VF(", baud="); V(SERIAL_TMC_BAUD); VLF(" bps");
     pinModeEx(SERIAL_TMC_RX, INPUT_PULLUP);
-    // retry if the driver didn't take its setup (a glitch on the shared UART line for instance)
-    for (int attempt = 1; attempt <= 3; attempt++) {
-      #if SERIAL_TMC_INVERT == ON
-        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX, true);
-      #else
-        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX);
-      #endif
-      if (driver->isSetupAndCommunicating()) break;
-      DF("WRN:"); D(axisPrefix); DF("UART setup attempt "); D(attempt); DLF(" failed");
-      delay(10);
-    }
     rxPin = SERIAL_TMC_RX;
   #else
     // pull MS1 and MS2 low for device address 0
@@ -103,6 +92,45 @@ bool StepDirTmc2209::init() {
     driver->setup(SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), rxPin, Pins->tx);
   #endif
 
+  // configure the driver, then read the settings back and start over if any didn't take (on a shared UART line one
+  // failed reply makes the library ignore all further writes to that driver)
+  for (int attempt = 1; attempt <= 5; attempt++) {
+    #if defined(SERIAL_TMC_HARDWARE_UART)
+      #if SERIAL_TMC_INVERT == ON
+        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX, true);
+      #else
+        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX);
+      #endif
+    #endif
+
+    driver->useExternalSenseResistors();
+    driver->enableAnalogCurrentScaling();
+
+    driver->enable();
+    driver->moveUsingStepDirInterface();
+    driver->setPwmOffset(pc_pwm_ofs);
+    driver->setPwmGradient(pc_pwm_grad);
+    if (pc_pwm_auto) driver->enableAutomaticCurrentScaling();
+    if (!intpol.value) {
+      VF("MSG:"); V(axisPrefix); VLF("driver interpolation control not supported");
+    }
+
+    modeMicrostepTracking();
+    driver->setRunCurrent(CurrentToPercent(iRun));
+    driver->setHoldCurrent(CurrentToPercent(iHold));
+    driver->disableStealthChop();
+
+    #if defined(SERIAL_TMC_HARDWARE_UART)
+      TMC2209Stepper::Settings check = driver->getSettings();
+      if (check.is_communicating && check.is_setup && check.analog_current_scaling_enabled &&
+          check.microsteps_per_step == normalizedMicrosteps && !check.stealth_chop_enabled) break;
+      DF("WRN:"); D(axisPrefix); DF("settings didn't verify on attempt "); D(attempt); DLF(", setting up again");
+      delay(20);
+    #else
+      break;
+    #endif
+  }
+
   // this driver automatically switches to one-way communications, even if a RX pin is set
   // so the following only returns false if communications are "half working"
   #ifdef MOTOR_DRIVER_DETECT
@@ -113,23 +141,6 @@ bool StepDirTmc2209::init() {
       } else { VF("MSG:"); V(axisPrefix); VLF("motor driver device detected"); }
     }
   #endif
-
-  driver->useExternalSenseResistors();
-  driver->enableAnalogCurrentScaling();
-
-  driver->enable();
-  driver->moveUsingStepDirInterface();
-  driver->setPwmOffset(pc_pwm_ofs);
-  driver->setPwmGradient(pc_pwm_grad);
-  if (pc_pwm_auto) driver->enableAutomaticCurrentScaling();
-  if (!intpol.value) {
-    VF("MSG:"); V(axisPrefix); VLF("driver interpolation control not supported");
-  }
-
-  modeMicrostepTracking();
-  driver->setRunCurrent(CurrentToPercent(iRun));
-  driver->setHoldCurrent(CurrentToPercent(iHold));
-  driver->disableStealthChop();
 
   // read the settings back over UART, a driver that doesn't answer runs on its power up defaults (often weak)
   #if DEBUG == VERBOSE && defined(SERIAL_TMC_HARDWARE_UART)
