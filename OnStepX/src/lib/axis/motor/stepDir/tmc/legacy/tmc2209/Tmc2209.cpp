@@ -13,6 +13,31 @@
 #define rx m3
 #define tx m2
 
+#if defined(ARDUINO_ARCH_RP2040) && defined(SERIAL_TMC_HARDWARE_UART)
+  // The TMC2209 library calls begin() on the shared UART for every driver. On the RP2040 a second begin() first
+  // ends the port, which glitches the TX line, so the next driver misses its first command, the library stops
+  // talking to it and that driver runs on its power up defaults. This wrapper starts the port only once.
+  class TmcSerialOnce : public HardwareSerial {
+    public:
+      void begin(unsigned long baud) { if (!started) { SERIAL_TMC.begin(baud); started = true; } }
+      void begin(unsigned long baud, uint16_t config) { if (!started) { SERIAL_TMC.begin(baud, config); started = true; } }
+      void end() {}
+      int available(void) { return SERIAL_TMC.available(); }
+      int peek(void) { return SERIAL_TMC.peek(); }
+      int read(void) { return SERIAL_TMC.read(); }
+      void flush(void) { SERIAL_TMC.flush(); }
+      size_t write(uint8_t b) { return SERIAL_TMC.write(b); }
+      using Print::write;
+      operator bool() { return (bool)SERIAL_TMC; }
+    private:
+      bool started = false;
+  };
+  static TmcSerialOnce tmcSerialOnce;
+  #define SERIAL_TMC_PORT tmcSerialOnce
+#else
+  #define SERIAL_TMC_PORT SERIAL_TMC
+#endif
+
 #define CurrentToPercent(current) ((current/1000.0)/(0.325/(rSense + 0.02)))*100.0
 
 // constructor
@@ -52,11 +77,17 @@ bool StepDirTmc2209::init() {
     VF("MSG:"); V(axisPrefix);
     VF("HW UART driver pins rx="); V(SERIAL_TMC_RX); VF(", tx="); V(SERIAL_TMC_TX); VF(", baud="); V(SERIAL_TMC_BAUD); VLF(" bps");
     pinModeEx(SERIAL_TMC_RX, INPUT_PULLUP);
-    #if SERIAL_TMC_INVERT == ON
-      driver->setup(SERIAL_TMC, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX, true);
-    #else
-      driver->setup(SERIAL_TMC, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX);
-    #endif
+    // retry if the driver didn't take its setup (a glitch on the shared UART line for instance)
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      #if SERIAL_TMC_INVERT == ON
+        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX, true);
+      #else
+        driver->setup(SERIAL_TMC_PORT, SERIAL_TMC_BAUD, SERIAL_TMC_ADDRESS_MAP(axisNumber - 1), SERIAL_TMC_RX, SERIAL_TMC_TX);
+      #endif
+      if (driver->isSetupAndCommunicating()) break;
+      DF("WRN:"); D(axisPrefix); DF("UART setup attempt "); D(attempt); DLF(" failed");
+      delay(10);
+    }
     rxPin = SERIAL_TMC_RX;
   #else
     // pull MS1 and MS2 low for device address 0
