@@ -100,6 +100,21 @@ bool StepDirTmc2209::init() {
   driver->setHoldCurrent(CurrentToPercent(iHold));
   driver->disableStealthChop();
 
+  // read the settings back over UART, a driver that doesn't answer runs on its power up defaults (often weak)
+  #if DEBUG == VERBOSE && defined(SERIAL_TMC_HARDWARE_UART)
+    TMC2209Stepper::Settings settings = driver->getSettings();
+    VF("MSG:"); V(axisPrefix); VF("UART address "); V(SERIAL_TMC_ADDRESS_MAP(axisNumber - 1));
+    if (!settings.is_communicating) {
+      VLF(" NO REPLY, the driver didn't get its settings (current, microsteps) and runs on defaults");
+    } else {
+      VF(" replied, UART control="); V(settings.is_setup ? "yes" : "NO");
+      VF(", microsteps="); V(settings.microsteps_per_step);
+      VF(", "); V(settings.stealth_chop_enabled ? "StealthChop" : "SpreadCycle");
+      VF(", analog current scaling="); V(settings.analog_current_scaling_enabled ? "on" : "off");
+      VF(", enabled="); VL(settings.enabled ? "yes" : "no");
+    }
+  #endif
+
   return true;
 }
 
