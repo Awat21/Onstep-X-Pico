@@ -306,7 +306,25 @@ uint8_t Limits::errorCode() {
   return ERR_NONE;
 }
 
+// log why a limit stopped motion (at most once every 2 seconds per kind)
+static void logLimitStop(const char *what, const LimitsError &e) {
+  static unsigned long lastMs = 0;
+  if ((long)(millis() - lastMs) < 2000) return;
+  lastMs = millis();
+  VF("MSG: Mount, limit stop "); V(what); VF(" (");
+  if (e.meridian.east) VF(" meridian east");
+  if (e.meridian.west) VF(" meridian west");
+  if (e.limit.axis1.min) VF(" axis1 min");
+  if (e.limit.axis1.max) VF(" axis1 max");
+  if (e.limit.axis2.min) VF(" axis2 min");
+  if (e.limit.axis2.max) VF(" axis2 max");
+  if (e.altitude.min) VF(" horizon");
+  if (e.altitude.max) VF(" overhead");
+  VLF(" )");
+}
+
 void Limits::stop() {
+  logLimitStop("all", error);
   #if GOTO_FEATURE == ON
     goTo.abort();
   #endif
@@ -316,6 +334,7 @@ void Limits::stop() {
 }
 
 void Limits::stopAxis1(GuideAction stopDirection) {
+  if (axis1.isSlewing()) logLimitStop(stopDirection == GA_FORWARD ? "axis1 fwd" : "axis1 rev", error);
   #if GOTO_FEATURE == ON
     goTo.abort();
   #endif
@@ -324,6 +343,7 @@ void Limits::stopAxis1(GuideAction stopDirection) {
 }
 
 void Limits::stopAxis2(GuideAction stopDirection) {
+  if (axis2.isSlewing()) logLimitStop(stopDirection == GA_FORWARD ? "axis2 fwd" : "axis2 rev", error);
   #if GOTO_FEATURE == ON
     goTo.abort();
   #endif

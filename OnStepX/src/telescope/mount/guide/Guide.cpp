@@ -442,7 +442,7 @@ void Guide::poll() {
     guideActionAxis1 = GA_NONE;
     mount.update();
   } else {
-    if (guideActionAxis1 > GA_BREAK && (long)(millis() - guideFinishTimeAxis1) >= 0) stopAxis1();
+    if (guideActionAxis1 > GA_BREAK && (long)(millis() - guideFinishTimeAxis1) >= 0) { VLF("MSG: Guide, axis1 time limit reached, stopping"); stopAxis1(); }
   }
 
   // check fast guide completion axis2
@@ -450,7 +450,7 @@ void Guide::poll() {
     guideActionAxis2 = GA_NONE;
     mount.update();
   } else {
-    if (guideActionAxis2 > GA_BREAK && (long)(millis() - guideFinishTimeAxis2) >= 0) stopAxis2();
+    if (guideActionAxis2 > GA_BREAK && (long)(millis() - guideFinishTimeAxis2) >= 0) { VLF("MSG: Guide, axis2 time limit reached, stopping"); stopAxis2(); }
   }
 
   // do spiral guiding, change rates and stop both axes at once

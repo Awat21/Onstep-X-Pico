@@ -90,18 +90,21 @@ bool Guide::command(char *reply, char *command, char *parameter, bool *suppressF
         #if GOTO_FEATURE == ON
           goTo.abort();
         #endif
+        VLF("MSG: Guide, stop all command :Q# received");
         stop();
         *numericReply = false;
     } else
     // :Qe# Qw#   Halt east/westward Slews
     //            Returns: Nothing
     if ((command[1] == 'e' || command[1] == 'w') && parameter[0] == 0) {
+      VF("MSG: Guide, stop command :Q"); V(command[1]); VLF("# received");
       stopAxis1();
       *numericReply = false;
     } else
     // :Qn# Qs#   Halt north/southward Slews
     //            Returns: Nothing
     if ((command[1] == 'n' || command[1] == 's') && parameter[0] == 0) {
+      VF("MSG: Guide, stop command :Q"); V(command[1]); VLF("# received");
       stopAxis2();
       *numericReply = false;
     } else return false;
