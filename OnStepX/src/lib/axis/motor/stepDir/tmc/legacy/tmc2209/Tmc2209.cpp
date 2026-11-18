@@ -19,8 +19,9 @@
   // talking to it and that driver runs on its power up defaults. This wrapper starts the port only once.
   class TmcSerialOnce : public HardwareSerial {
     public:
-      void begin(unsigned long baud) { if (!started) { SERIAL_TMC.begin(baud); started = true; } }
-      void begin(unsigned long baud, uint16_t config) { if (!started) { SERIAL_TMC.begin(baud, config); started = true; } }
+      // pinMode() on the RX pin after begin() takes it away from the UART, so only the pull-up is added here
+      void begin(unsigned long baud) { if (!started) { SERIAL_TMC.begin(baud); gpio_pull_up(SERIAL_TMC_RX); started = true; } }
+      void begin(unsigned long baud, uint16_t config) { if (!started) { SERIAL_TMC.begin(baud, config); gpio_pull_up(SERIAL_TMC_RX); started = true; } }
       void end() {}
       int available(void) { return SERIAL_TMC.available(); }
       int peek(void) { return SERIAL_TMC.peek(); }
@@ -69,7 +70,7 @@
     uint8_t req[4] = { 0x05, addr, reg, 0 }; req[3] = tmcCrc(req, 3);
     SERIAL_TMC.write(req, 4); SERIAL_TMC.flush();
     uint8_t buf[16]; int n = tmcCollect(buf, 12, 20000);
-    char hex[60]; tmcHex(hex, buf, n);
+    char hex[64]; tmcHex(hex, buf, n);
     int result = 0;
     if (n >= 12) {
       uint8_t *r = buf + 4;
@@ -79,10 +80,10 @@
       } else result = -1;
     }
     if (log) {
-      char msg[140];
-      if (result == 1) sprintf(msg, "MSG: TMC raw, addr %u reg 0x%02X = 0x%08lX  [%s]", addr, reg, (unsigned long)*value, hex); else
-      if (result == -1) sprintf(msg, "MSG: TMC raw, addr %u reg 0x%02X BAD REPLY (crc/framing) [%s]", addr, reg, hex); else
-        sprintf(msg, "MSG: TMC raw, addr %u reg 0x%02X no reply, got %d of 12 bytes [%s]", addr, reg, n, hex);
+      char msg[256];
+      if (result == 1) snprintf(msg, sizeof(msg), "MSG: TMC raw, addr %u reg 0x%02X = 0x%08lX  [%s]", addr, reg, (unsigned long)*value, hex); else
+      if (result == -1) snprintf(msg, sizeof(msg), "MSG: TMC raw, addr %u reg 0x%02X BAD REPLY (crc/framing) [%s]", addr, reg, hex); else
+        snprintf(msg, sizeof(msg), "MSG: TMC raw, addr %u reg 0x%02X no reply, got %d of 12 bytes [%s]", addr, reg, n, hex);
       VL(msg);
     }
     delay(2);
@@ -111,18 +112,18 @@
     // write test on the Axis2 (Dec) driver, IFCNT counts the writes the driver accepted
     uint8_t a = SERIAL_TMC_ADDRESS_MAP(1);
     uint32_t cnt0 = 0, cnt1 = 0, gconf = 0, chop = 0;
-    char msg[140];
+    char msg[256];
     if (tmcRawRead(a, 0x02, &cnt0, false) == 1 && tmcRawRead(a, 0x6C, &chop, false) == 1) {
       tmcRawWrite(a, 0x00, 0x000001C5UL);                                     // GCONF: analog scale, spreadCycle, pdn_disable, mstep_reg_select, multistep_filt
       tmcRawWrite(a, 0x6C, (chop & ~(0x0FUL << 24)) | (4UL << 24));          // CHOPCONF mres=4 (16 microsteps)
       tmcRawRead(a, 0x02, &cnt1, false);
       tmcRawRead(a, 0x00, &gconf, false);
       tmcRawRead(a, 0x6C, &chop, false);
-      sprintf(msg, "MSG: TMC raw, addr %u write test: IFCNT %lu -> %lu (should go up by 2), GCONF=0x%08lX (want 0x000001C5), CHOPCONF=0x%08lX (mres=%lu, want 4)",
+      snprintf(msg, sizeof(msg), "MSG: TMC raw, addr %u write test: IFCNT %lu -> %lu (should go up by 2), GCONF=0x%08lX (want 0x000001C5), CHOPCONF=0x%08lX (mres=%lu, want 4)",
         a, (unsigned long)cnt0, (unsigned long)cnt1, (unsigned long)gconf, (unsigned long)chop, (unsigned long)((chop >> 24) & 0x0F));
       VL(msg);
     } else {
-      sprintf(msg, "MSG: TMC raw, addr %u write test skipped, no clean reply", a); VL(msg);
+      snprintf(msg, sizeof(msg), "MSG: TMC raw, addr %u write test skipped, no clean reply", a); VL(msg);
     }
     VLF("MSG: TMC raw, ---- UART diagnostic end ----");
   }
@@ -166,7 +167,11 @@ bool StepDirTmc2209::init() {
 
     VF("MSG:"); V(axisPrefix);
     VF("HW UART driver pins rx="); V(SERIAL_TMC_RX); VF(", tx="); V(SERIAL_TMC_TX); VF(", baud="); V(SERIAL_TMC_BAUD); VLF(" bps");
-    pinModeEx(SERIAL_TMC_RX, INPUT_PULLUP);
+    // on the RP2040 the port wrapper handles the pull-up, a pinMode() here would disconnect RX from the UART for the
+    // second and later drivers (the port is only started once) so they'd get no replies
+    #if !defined(ARDUINO_ARCH_RP2040)
+      pinModeEx(SERIAL_TMC_RX, INPUT_PULLUP);
+    #endif
     rxPin = SERIAL_TMC_RX;
   #else
     // pull MS1 and MS2 low for device address 0
